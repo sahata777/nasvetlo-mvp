@@ -1,0 +1,153 @@
+# NA SVETLO MVP Configuration
+
+sources:
+  # Tier 1 — Institutional / Top quality
+  - name: "БТА"
+    rss_url: "https://www.bta.bg/bg/rss/free"
+    tier: 1
+    credibility_score: 0.95
+    enabled: true
+
+  - name: "Дневник"
+    rss_url: "https://www.dnevnik.bg/rss/"
+    tier: 1
+    credibility_score: 0.90
+    enabled: true
+
+  - name: "Капитал"
+    rss_url: "https://www.capital.bg/rss/"
+    tier: 1
+    credibility_score: 0.90
+    enabled: true
+
+  # Tier 2 — Quality independents
+  - name: "Медиапул"
+    rss_url: "https://www.mediapool.bg/rss"
+    tier: 2
+    credibility_score: 0.85
+    enabled: true
+
+  - name: "Свободна Европа"
+    rss_url: "https://www.svobodnaevropa.bg/api/zgmpmil-vomx-tpe--_mm"
+    tier: 2
+    credibility_score: 0.85
+    enabled: true
+
+  - name: "Клуб Z"
+    rss_url: "https://clubz.bg/rss"
+    tier: 2
+    credibility_score: 0.80
+    enabled: true
+
+  # Tier 3 — Mainstream aggregators
+  - name: "Dir.bg Новини"
+    rss_url: "https://dnes.dir.bg/feeds/rss"
+    tier: 3
+    credibility_score: 0.70
+    enabled: true
+
+  # Disabled — no working RSS feed found
+  - name: "БНР"
+    rss_url: "https://bnr.bg/rss"
+    tier: 1
+    credibility_score: 0.95
+    enabled: false
+
+  - name: "Offnews"
+    rss_url: "https://offnews.bg/rss"
+    tier: 2
+    credibility_score: 0.80
+    enabled: false
+
+  - name: "Факти"
+    rss_url: "https://fakti.bg/rss"
+    tier: 3
+    credibility_score: 0.65
+    enabled: false
+
+  - name: "Novini.bg"
+    rss_url: "https://novini.bg/rss"
+    tier: 3
+    credibility_score: 0.65
+    enabled: false
+
+  - name: "Труд"
+    rss_url: "https://trud.bg/rss"
+    tier: 4
+    credibility_score: 0.50
+    enabled: false
+
+thresholds:
+  similarity_threshold: 0.80
+  min_sources: 3
+  time_window_hours: 24
+  importance_threshold: 0.60
+  coherence_confidence_min: 0.60
+
+scoring_weights:
+  source_count: 0.35
+  tier_average: 0.25
+  speed: 0.15
+  institutional: 0.15
+  recency: 0.10
+
+schedule:
+  scan_minutes: 40
+  daily_cap: 8
+
+safety:
+  high_risk_keywords:
+    - "обвинен"
+    - "арестуван"
+    - "корупция"
+    - "престъпление"
+    - "измама"
+    - "убийство"
+    - "изнасилване"
+    - "тероризъм"
+    - "наркотици"
+    - "пране на пари"
+  institutional_keywords:
+    - "правителство"
+    - "министерски съвет"
+    - "парламент"
+    - "народно събрание"
+    - "президент"
+    - "прокуратура"
+    - "съд"
+    - "ДАНС"
+    - "МВР"
+    - "Европейска комисия"
+    - "НАТО"
+    - "ЕС"
+  defamation_keywords:
+    - "мошеник"
+    - "престъпник"
+    - "крадец"
+    - "лъжец"
+    - "корумпиран"
+
+web:
+  site_url: "https://nasvetlo.bg"
+  site_name: "На Светло"
+  site_description: "Българският новинарски агрегатор"
+  host: "0.0.0.0"
+  port: 8000
+  articles_per_page: 20
+  default_category_id: 1
+  category_map:
+    политика: 2
+    икономика: 3
+    общество: 4
+    свят: 5
+    технологии: 6
+
+llm:
+  provider: "anthropic"
+  model: "claude-sonnet-4-5-20250929"
+  temperature: 0.3
+  max_tokens: 4096
+
+telegram:
+  bot_token_env: "TELEGRAM_BOT_TOKEN"
+  chat_id: ""

@@ -1,0 +1,58 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Dashboard — На Светло{% endblock %}
+
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">{{ pending_count }}</div>
+        <div class="stat-label">Чакащи</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ published_today }}</div>
+        <div class="stat-label">Публикувани днес</div>
+    </div>
+    <div class="stat-card {{ 'stat-danger' if high_risk_count > 0 else '' }}">
+        <div class="stat-number">{{ high_risk_count }}</div>
+        <div class="stat-label">Висок риск</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ last_run.status if last_run else 'N/A' }}</div>
+        <div class="stat-label">Последно изпълнение</div>
+    </div>
+</div>
+
+{% if last_run %}
+<div class="info-box">
+    <strong>Последно изпълнение:</strong> {{ last_run.started_at.strftime('%d.%m.%Y %H:%M') if last_run.started_at else 'N/A' }}
+    | Статии: {{ last_run.articles_ingested }} | Чернови: {{ last_run.drafts_created }} | Грешки: {{ last_run.errors }}
+    {% if last_run.is_paused %}<span class="badge badge-warning">ПАУЗА</span>{% endif %}
+</div>
+{% endif %}
+
+<h2>Последни статии</h2>
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Заглавие</th>
+            <th>Категория</th>
+            <th>Риск</th>
+            <th>Статус</th>
+            <th>Дата</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for article in recent_articles %}
+        <tr>
+            <td><a href="/dashboard/article/{{ article.id }}">{{ article.title | truncate(60) }}</a></td>
+            <td>{{ category_names.get(article.category_id, "Общи") }}</td>
+            <td><span class="badge badge-risk-{{ article.safety_risk_level }}">{{ article.safety_risk_level }}</span></td>
+            <td><span class="badge badge-status-{{ article.status }}">{{ article.status }}</span></td>
+            <td>{{ article.created_at.strftime('%d.%m %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

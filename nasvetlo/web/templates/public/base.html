@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block body %}
+<header class="site-header">
+    <div class="container">
+        <a href="/" class="site-logo">На Светло</a>
+        <nav class="site-nav">
+            <a href="/category/2">Политика</a>
+            <a href="/category/3">Икономика</a>
+            <a href="/category/4">Общество</a>
+            <a href="/category/5">Свят</a>
+            <a href="/category/6">Технологии</a>
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+    <div class="container">
+        <p>На Светло &mdash; Автоматизиран новинарски агрегатор</p>
+        <a href="/feed.xml">RSS</a>
+    </div>
+</footer>
+{% endblock %}

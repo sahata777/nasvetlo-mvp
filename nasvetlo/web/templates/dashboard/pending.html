@@ -1,0 +1,11 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Чакащи — На Светло{% endblock %}
+
+{% block content %}
+<h1>Чакащи чернови</h1>
+
+<div id="pending-list" hx-get="/dashboard/pending" hx-trigger="every 30s" hx-swap="innerHTML">
+    {% include "dashboard/partials/pending_list.html" %}
+</div>
+{% endblock %}

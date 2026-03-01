@@ -1,0 +1,98 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}{{ article.title | truncate(40) }} — Dashboard{% endblock %}
+
+{% block content %}
+<div class="detail-layout">
+    <div class="detail-main">
+        <h1>{{ article.title }}</h1>
+        <p class="article-meta">
+            {{ article.created_at.strftime('%d.%m.%Y %H:%M') }} | {{ article.word_count }} думи
+            | <a href="/dashboard/article/{{ article.id }}/edit">Редактирай</a>
+        </p>
+        <div class="article-body">
+            {{ article.body_html | safe }}
+        </div>
+
+        {% if article.tags %}
+        <div class="article-tags">
+            {% for tag in article.tags %}
+            <span class="tag">{{ tag }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="detail-sidebar">
+        <div class="sidebar-section" id="status-section">
+            {% include "dashboard/partials/status_badge.html" %}
+        </div>
+
+        <div class="sidebar-section">
+            <h3>Безопасност</h3>
+            <span class="badge badge-risk-{{ article.safety_risk_level }}">{{ article.safety_risk_level }}</span>
+            {% if article.safety_flags %}
+            <ul class="flag-list">
+                {% for flag in article.safety_flags %}
+                <li>{{ flag }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+
+        {% if cluster %}
+        <div class="sidebar-section">
+            <h3>Клъстер #{{ cluster.id }}</h3>
+            <ul class="meta-list">
+                <li>Уникални домейна: {{ cluster.unique_domain_count }}</li>
+                <li>Важност: {{ '%.2f' | format(cluster.importance_score or 0) }}</li>
+                <li>Кохерентност: {{ '%.2f' | format(cluster.coherence_confidence or 0) }}</li>
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="sidebar-section">
+            <h3>Източници ({{ source_articles | length }})</h3>
+            <ul class="source-list">
+                {% for src in source_articles %}
+                <li>
+                    <a href="{{ src.url }}" target="_blank" rel="noopener">{{ src.title | truncate(50) }}</a>
+                    <small>{{ src.source.name if src.source else '' }}</small>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="sidebar-section">
+            <h3>SEO</h3>
+            <ul class="meta-list">
+                <li><strong>SEO заглавие:</strong> {{ article.seo_title }}</li>
+                <li><strong>Slug:</strong> {{ article.slug }}</li>
+                <li><strong>Описание:</strong> {{ article.meta_description }}</li>
+            </ul>
+        </div>
+
+        {% if article.editor_notes %}
+        <div class="sidebar-section">
+            <h3>Бележки</h3>
+            <p>{{ article.editor_notes }}</p>
+        </div>
+        {% endif %}
+
+        {% if logs %}
+        <div class="sidebar-section">
+            <h3>История</h3>
+            <ul class="log-list">
+                {% for log in logs %}
+                <li>
+                    <span class="badge badge-sm">{{ log.action }}</span>
+                    {{ log.actor }} &mdash; {{ log.created_at.strftime('%d.%m %H:%M') if log.created_at else '' }}
+                    {% if log.note %}<br><small>{{ log.note }}</small>{% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

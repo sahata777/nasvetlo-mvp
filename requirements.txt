@@ -1,0 +1,34 @@
+# Core
+pydantic>=2.0,<3.0
+pydantic-settings>=2.0,<3.0
+pyyaml>=6.0
+sqlalchemy>=2.0,<3.0
+typer[all]>=0.9,<1.0
+apscheduler>=3.10,<4.0
+
+# Ingestion
+feedparser>=6.0
+requests>=2.31
+beautifulsoup4>=4.12
+
+# Embeddings (optional local)
+sentence-transformers>=2.2
+torch>=2.0
+
+# LLM providers
+anthropic>=0.39
+openai>=1.0
+
+# Web
+fastapi>=0.104,<1.0
+uvicorn[standard]>=0.24
+jinja2>=3.1
+python-multipart>=0.0.6
+
+# Utilities
+python-dotenv>=1.0
+
+# Testing
+pytest>=7.0
+pytest-mock>=3.0
+responses>=0.23

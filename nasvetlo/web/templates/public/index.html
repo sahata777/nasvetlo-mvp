@@ -1,0 +1,36 @@
+{% extends "public/base.html" %}
+
+{% block title %}{{ current_category | default(config.web.site_name) }}{% endblock %}
+
+{% block content %}
+{% if current_category %}
+<h1>{{ current_category }}</h1>
+{% endif %}
+
+{% if not articles %}
+<p class="empty-state">Все още няма публикувани статии.</p>
+{% endif %}
+
+<div class="article-list">
+    {% for article in articles %}
+    <article class="article-card">
+        <span class="category-tag">{{ category_names.get(article.category_id, "Общи") }}</span>
+        <h2><a href="/article/{{ article.slug }}">{{ article.title }}</a></h2>
+        <p class="article-meta">{{ article.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+        <p class="article-excerpt">{{ article.meta_description }}</p>
+    </article>
+    {% endfor %}
+</div>
+
+{% if total_pages > 1 %}
+<nav class="pagination">
+    {% if page > 1 %}
+    <a href="?page={{ page - 1 }}">&laquo; Предишна</a>
+    {% endif %}
+    <span>Страница {{ page }} от {{ total_pages }}</span>
+    {% if page < total_pages %}
+    <a href="?page={{ page + 1 }}">Следваща &raquo;</a>
+    {% endif %}
+</nav>
+{% endif %}
+{% endblock %}

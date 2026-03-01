@@ -1,0 +1,34 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Източници — На Светло{% endblock %}
+
+{% block content %}
+<h1>Източници</h1>
+
+{% if not sources %}
+<p class="empty-state">Няма регистрирани източници.</p>
+{% else %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Име</th>
+            <th>Tier</th>
+            <th>Достоверност</th>
+            <th>Активен</th>
+            <th>Последно извличане</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for src in sources %}
+        <tr class="{{ '' if src.enabled else 'row-disabled' }}">
+            <td>{{ src.name }}</td>
+            <td>{{ src.tier }}</td>
+            <td>{{ '%.2f' | format(src.credibility_score) }}</td>
+            <td>{{ 'Да' if src.enabled else 'Не' }}</td>
+            <td>{{ src.last_fetched_at.strftime('%d.%m %H:%M') if src.last_fetched_at else 'Никога' }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="dash-layout">
+    <aside class="dash-sidebar">
+        <a href="/dashboard/" class="dash-logo">На Светло</a>
+        <nav>
+            <a href="/dashboard/">Начало</a>
+            <a href="/dashboard/pending">Чакащи</a>
+            <a href="/dashboard/articles">Всички статии</a>
+            <a href="/dashboard/runs">Изпълнения</a>
+            <a href="/dashboard/sources">Източници</a>
+        </nav>
+        <div class="dash-sidebar-footer">
+            <a href="/" target="_blank">Публичен сайт</a>
+        </div>
+    </aside>
+    <main class="dash-main">
+        {% block content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+<h3>Статус</h3>
+<span class="badge badge-lg badge-status-{{ article.status }}">{{ article.status | upper }}</span>
+{% if article.reviewed_at %}
+<small style="margin-left:0.5rem">{{ article.reviewed_at.strftime('%d.%m.%Y %H:%M') }}</small>
+{% endif %}
+
+<h3 style="margin-top:1rem">Действия</h3>
+<div class="action-buttons">
+    {% if article.status == "pending" %}
+    <button class="btn btn-success"
+        hx-post="/dashboard/article/{{ article.id }}/approve"
+        hx-target="#status-section"
+        hx-swap="innerHTML">Одобри</button>
+    <button class="btn btn-danger"
+        hx-post="/dashboard/article/{{ article.id }}/reject"
+        hx-target="#status-section"
+        hx-swap="innerHTML">Отхвърли</button>
+    {% endif %}
+    {% if article.status in ("pending", "approved") %}
+    <button class="btn btn-primary"
+        hx-post="/dashboard/article/{{ article.id }}/publish"
+        hx-target="#status-section"
+        hx-swap="innerHTML">Публикувай</button>
+    {% endif %}
+    {% if article.status == "published" %}
+    <a href="/article/{{ article.slug }}" class="btn btn-primary" target="_blank">Виж на сайта &rarr;</a>
+    {% endif %}
+    {% if article.status == "rejected" %}
+    <span class="badge badge-status-rejected">Отхвърлена</span>
+    {% endif %}
+</div>

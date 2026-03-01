@@ -1,0 +1,43 @@
+{% extends "public/base.html" %}
+
+{% block title %}{{ article.seo_title or article.title }}{% endblock %}
+{% block meta_description %}{{ article.meta_description }}{% endblock %}
+
+{% block head %}
+<meta property="og:title" content="{{ article.seo_title or article.title }}">
+<meta property="og:description" content="{{ article.meta_description }}">
+<meta property="og:type" content="article">
+{% endblock %}
+
+{% block content %}
+<article class="article-full">
+    <header>
+        <span class="category-tag">{{ category_names.get(article.category_id, "Общи") }}</span>
+        <h1>{{ article.title }}</h1>
+        <p class="article-meta">{{ article.created_at.strftime('%d.%m.%Y %H:%M') }} | {{ article.word_count }} думи</p>
+    </header>
+
+    <div class="article-body">
+        {{ article.body_html | safe }}
+    </div>
+
+    {% if article.tags %}
+    <div class="article-tags">
+        {% for tag in article.tags %}
+        <span class="tag">{{ tag }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if article.source_urls %}
+    <div class="article-sources">
+        <h3>Източници</h3>
+        <ul>
+            {% for url in article.source_urls %}
+            <li><a href="{{ url }}" target="_blank" rel="noopener">{{ url | truncate(80) }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</article>
+{% endblock %}

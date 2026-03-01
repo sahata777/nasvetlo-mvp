@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nasvetlo-mvp"
+version = "0.1.0"
+description = "NA SVETLO news aggregation MVP"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [ { name = "Your Name" } ]
+
+[project.dependencies]
+# Add runtime dependencies here or leave empty and use requirements.txt
+# Example: requests = "^2.31.0"

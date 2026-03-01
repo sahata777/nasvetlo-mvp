@@ -1,0 +1,42 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Всички статии — На Светло{% endblock %}
+
+{% block content %}
+<h1>Всички статии</h1>
+
+<div class="filter-tabs">
+    <a href="/dashboard/articles?status=all" class="{{ 'active' if current_status == 'all' else '' }}" hx-get="/dashboard/articles?status=all" hx-push-url="true" hx-target="main" hx-select="main > *" hx-swap="innerHTML">Всички</a>
+    <a href="/dashboard/articles?status=pending" class="{{ 'active' if current_status == 'pending' else '' }}" hx-get="/dashboard/articles?status=pending" hx-push-url="true" hx-target="main" hx-select="main > *" hx-swap="innerHTML">Чакащи</a>
+    <a href="/dashboard/articles?status=approved" class="{{ 'active' if current_status == 'approved' else '' }}" hx-get="/dashboard/articles?status=approved" hx-push-url="true" hx-target="main" hx-select="main > *" hx-swap="innerHTML">Одобрени</a>
+    <a href="/dashboard/articles?status=published" class="{{ 'active' if current_status == 'published' else '' }}" hx-get="/dashboard/articles?status=published" hx-push-url="true" hx-target="main" hx-select="main > *" hx-swap="innerHTML">Публикувани</a>
+    <a href="/dashboard/articles?status=rejected" class="{{ 'active' if current_status == 'rejected' else '' }}" hx-get="/dashboard/articles?status=rejected" hx-push-url="true" hx-target="main" hx-select="main > *" hx-swap="innerHTML">Отхвърлени</a>
+</div>
+
+{% if not articles %}
+<p class="empty-state">Няма статии.</p>
+{% else %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Заглавие</th>
+            <th>Категория</th>
+            <th>Риск</th>
+            <th>Статус</th>
+            <th>Дата</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for article in articles %}
+        <tr>
+            <td><a href="/dashboard/article/{{ article.id }}">{{ article.title | truncate(60) }}</a></td>
+            <td>{{ category_names.get(article.category_id, "Общи") }}</td>
+            <td><span class="badge badge-risk-{{ article.safety_risk_level }}">{{ article.safety_risk_level }}</span></td>
+            <td><span class="badge badge-status-{{ article.status }}">{{ article.status }}</span></td>
+            <td>{{ article.created_at.strftime('%d.%m %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

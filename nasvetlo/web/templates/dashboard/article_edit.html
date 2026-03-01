@@ -1,0 +1,22 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Редактиране — {{ article.title | truncate(30) }}{% endblock %}
+
+{% block content %}
+<h1>Редактиране</h1>
+
+<form method="post" action="/dashboard/article/{{ article.id }}/edit">
+    <div class="form-group">
+        <label for="title">Заглавие</label>
+        <input type="text" id="title" name="title" value="{{ article.title }}" class="form-input">
+    </div>
+    <div class="form-group">
+        <label for="body_html">Съдържание (HTML)</label>
+        <textarea id="body_html" name="body_html" rows="20" class="form-input">{{ article.body_html }}</textarea>
+    </div>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Запази</button>
+        <a href="/dashboard/article/{{ article.id }}" class="btn">Отказ</a>
+    </div>
+</form>
+{% endblock %}

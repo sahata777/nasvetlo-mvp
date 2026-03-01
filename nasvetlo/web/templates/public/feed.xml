@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+    <title>{{ config.web.site_name }}</title>
+    <link>{{ config.web.site_url }}</link>
+    <description>{{ config.web.site_description }}</description>
+    <language>bg</language>
+    {% for article in articles %}
+    <item>
+        <title>{{ article.seo_title or article.title }}</title>
+        <link>{{ config.web.site_url }}/article/{{ article.slug }}</link>
+        <description>{{ article.meta_description }}</description>
+        <pubDate>{{ article.created_at.strftime('%a, %d %b %Y %H:%M:%S +0000') }}</pubDate>
+        <guid>{{ config.web.site_url }}/article/{{ article.slug }}</guid>
+    </item>
+    {% endfor %}
+</channel>
+</rss>

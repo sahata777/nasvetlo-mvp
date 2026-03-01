@@ -1,0 +1,41 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Изпълнения — На Светло{% endblock %}
+
+{% block content %}
+<h1>Изпълнения на пайплайна</h1>
+
+{% if not runs %}
+<p class="empty-state">Няма записани изпълнения.</p>
+{% else %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Начало</th>
+            <th>Статус</th>
+            <th>Статии</th>
+            <th>Клъстери</th>
+            <th>Чернови</th>
+            <th>Грешки</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for run in runs %}
+        <tr>
+            <td>{{ run.id }}</td>
+            <td>{{ run.started_at.strftime('%d.%m %H:%M') if run.started_at else '' }}</td>
+            <td>
+                <span class="badge badge-status-{{ run.status }}">{{ run.status }}</span>
+                {% if run.is_paused %}<span class="badge badge-warning">ПАУЗА</span>{% endif %}
+            </td>
+            <td>{{ run.articles_ingested }}</td>
+            <td>{{ run.clusters_formed }}</td>
+            <td>{{ run.drafts_created }}</td>
+            <td>{{ run.errors }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}
