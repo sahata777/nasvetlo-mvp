@@ -244,9 +244,10 @@ def _draft_cluster(
     lines = final_text.strip().split("\n")
     title = lines[0].strip().lstrip("#").strip() if lines else "Без заглавие"
 
-    # Build HTML body
-    body_lines = lines[1:] if len(lines) > 1 else []
-    body_html = "\n".join(f"<p>{line}</p>" for line in body_lines if line.strip())
+    # Build HTML body — convert markdown to proper HTML
+    import markdown as md_lib
+    body_text = "\n".join(lines[1:]) if len(lines) > 1 else ""
+    body_html = md_lib.markdown(body_text, extensions=["nl2br"])
 
     # Word count
     word_count = len(final_text.split())
@@ -302,6 +303,25 @@ def _draft_cluster(
             )
             session.add(pub_log)
             gen_article.status = "pending"
+
+            # Publish to WordPress as pending post
+            try:
+                from nasvetlo.publishing.wordpress import publish_pending_post
+                wp_post = publish_pending_post(
+                    title=title,
+                    body_html=body_html,
+                    slug=seo.slug,
+                    meta_description=seo.meta_description,
+                    category_id=category_id,
+                    tags=seo.tags,
+                )
+                if wp_post:
+                    pub_log.wp_post_id = wp_post.get("id")
+                    pub_log.wp_url = wp_post.get("link")
+                    pub_log.status = "wp_pending"
+                    result_info["wp_post_id"] = wp_post.get("id")
+            except Exception as e:
+                log.error("WordPress publish failed: %s", e)
 
             # Optional Telegram notification
             site_url = config.web.site_url.rstrip("/")

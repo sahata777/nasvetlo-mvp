@@ -93,7 +93,7 @@ scoring_weights:
 
 schedule:
   scan_minutes: 40
-  daily_cap: 8
+  daily_cap: 30
 
 safety:
   high_risk_keywords:
