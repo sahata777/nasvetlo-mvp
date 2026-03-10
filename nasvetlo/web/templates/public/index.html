@@ -16,7 +16,7 @@
     <article class="article-card">
         <span class="category-tag">{{ category_names.get(article.category_id, "Общи") }}</span>
         <h2><a href="/article/{{ article.slug }}">{{ article.title }}</a></h2>
-        <p class="article-meta">{{ article.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+        <p class="article-meta">{{ article.created_at.strftime('%d.%m.%Y %H:%M') }} &middot; ≈ {{ article.word_count | reading_time }} мин</p>
         <p class="article-excerpt">{{ article.meta_description }}</p>
     </article>
     {% endfor %}

@@ -14,11 +14,18 @@
     <header>
         <span class="category-tag">{{ category_names.get(article.category_id, "Общи") }}</span>
         <h1>{{ article.title }}</h1>
-        <p class="article-meta">{{ article.created_at.strftime('%d.%m.%Y %H:%M') }} | {{ article.word_count }} думи</p>
+        <p class="article-meta">{{ article.created_at.strftime('%d.%m.%Y %H:%M') }} | {{ article.word_count }} думи | ≈ {{ article.word_count | reading_time }} мин четене</p>
     </header>
 
     <div class="article-body">
         {{ article.body_html | safe }}
+    </div>
+
+    <div class="share-bar">
+        <span class="share-label">Сподели:</span>
+        <a class="share-btn share-fb" href="https://www.facebook.com/sharer/sharer.php?u={{ config.web.site_url }}/article/{{ article.slug }}" target="_blank" rel="noopener">Facebook</a>
+        <a class="share-btn share-x" href="https://twitter.com/intent/tweet?url={{ config.web.site_url }}/article/{{ article.slug }}&text={{ article.title | urlencode }}" target="_blank" rel="noopener">X / Twitter</a>
+        <button class="share-btn share-copy" onclick="navigator.clipboard.writeText(window.location.href).then(()=>{this.textContent='Копирано!';setTimeout(()=>{this.textContent='Копирай връзка'},2000)})">Копирай връзка</button>
     </div>
 
     {% if article.tags %}

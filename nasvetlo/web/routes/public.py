@@ -114,6 +114,50 @@ def category_page(
     })
 
 
+@router.get("/search", response_class=HTMLResponse)
+def search(request: Request, q: str = "", db: Session = Depends(get_db)):
+    config = get_config()
+    articles = []
+    if q.strip():
+        pattern = f"%{q.strip()}%"
+        articles = (
+            db.query(GeneratedArticle)
+            .filter(
+                GeneratedArticle.status == "published",
+                GeneratedArticle.title.like(pattern) | GeneratedArticle.body_text.like(pattern),
+            )
+            .order_by(GeneratedArticle.created_at.desc())
+            .limit(30)
+            .all()
+        )
+
+    return templates.TemplateResponse("public/search.html", {
+        "request": request,
+        "articles": articles,
+        "q": q,
+        "category_names": CATEGORY_NAMES,
+        "config": config,
+    })
+
+
+@router.get("/about", response_class=HTMLResponse)
+def about_page(request: Request):
+    config = get_config()
+    return templates.TemplateResponse("public/about.html", {
+        "request": request,
+        "config": config,
+    })
+
+
+@router.get("/contact", response_class=HTMLResponse)
+def contact_page(request: Request):
+    config = get_config()
+    return templates.TemplateResponse("public/contact.html", {
+        "request": request,
+        "config": config,
+    })
+
+
 @router.get("/feed.xml")
 def rss_feed(request: Request, db: Session = Depends(get_db)):
     config = get_config()

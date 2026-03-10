@@ -4,15 +4,30 @@
 <header class="site-header">
     <div class="container">
         <a href="/" class="site-logo">На Светло</a>
-        <nav class="site-nav">
+        <nav class="site-nav" id="site-nav">
             <a href="/category/2">Политика</a>
             <a href="/category/3">Икономика</a>
             <a href="/category/4">Общество</a>
             <a href="/category/5">Свят</a>
             <a href="/category/6">Технологии</a>
         </nav>
+        <form class="search-form" action="/search" method="get">
+            <input class="search-input" type="search" name="q" placeholder="Търси…">
+            <button class="search-submit" type="submit">&#128269;</button>
+        </form>
+        <button class="hamburger" id="hamburger" aria-label="Меню" onclick="document.getElementById('mobile-nav').classList.toggle('open')">&#9776;</button>
     </div>
 </header>
+
+<div class="mobile-nav" id="mobile-nav">
+    <a href="/category/2">Политика</a>
+    <a href="/category/3">Икономика</a>
+    <a href="/category/4">Общество</a>
+    <a href="/category/5">Свят</a>
+    <a href="/category/6">Технологии</a>
+    <a href="/about">За нас</a>
+    <a href="/contact">Контакти</a>
+</div>
 
 <main class="container">
     {% block content %}{% endblock %}
@@ -21,7 +36,11 @@
 <footer class="site-footer">
     <div class="container">
         <p>На Светло &mdash; Автоматизиран новинарски агрегатор</p>
-        <a href="/feed.xml">RSS</a>
+        <div class="footer-links">
+            <a href="/about">За нас</a>
+            <a href="/contact">Контакти</a>
+            <a href="/feed.xml">RSS</a>
+        </div>
     </div>
 </footer>
 {% endblock %}

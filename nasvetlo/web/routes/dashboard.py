@@ -9,6 +9,8 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
 from nasvetlo.config import get_config
+from nasvetlo.publishing.wordpress import publish_to_wordpress
+from nasvetlo.settings import get_settings
 from nasvetlo.models import (
     Cluster,
     GeneratedArticle,
@@ -120,6 +122,8 @@ def article_detail(article_id: int, request: Request, db: Session = Depends(get_
         .all()
     )
 
+    wp_log = next((l for l in logs if l.wp_url), None)
+
     return templates.TemplateResponse("dashboard/article_detail.html", {
         "request": request,
         "article": article,
@@ -127,6 +131,7 @@ def article_detail(article_id: int, request: Request, db: Session = Depends(get_
         "source_articles": source_articles,
         "logs": logs,
         "category_names": CATEGORY_NAMES,
+        "wp_url": wp_log.wp_url if wp_log else None,
     })
 
 
@@ -182,15 +187,24 @@ def reject_article(
 @router.post("/article/{article_id}/publish", response_class=HTMLResponse)
 def publish_article(article_id: int, request: Request, db: Session = Depends(get_db)):
     article = db.query(GeneratedArticle).get(article_id)
+    wp_url = None
     if article:
         article.status = "published"
         article.published = True
         article.reviewed_at = datetime.now(timezone.utc)
+
+        result = publish_to_wordpress(article, get_settings())
+        wp_url = result.wp_url
+
         log = PublishingLog(
             article_id=article_id,
             cluster_id=article.cluster_id,
             action="published",
             actor="editor",
+            wp_post_id=result.wp_post_id,
+            wp_url=result.wp_url,
+            status="success" if result.success else "wp_failed",
+            note=f"WP post #{result.wp_post_id}" if result.success else f"WP error: {result.error}",
         )
         db.add(log)
         db.commit()
@@ -198,6 +212,7 @@ def publish_article(article_id: int, request: Request, db: Session = Depends(get
     return templates.TemplateResponse("dashboard/partials/status_badge.html", {
         "request": request,
         "article": article,
+        "wp_url": wp_url,
     })
 
 
