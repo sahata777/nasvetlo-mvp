@@ -79,6 +79,7 @@ class FeaturesConfig(BaseModel):
     search_questions_per_event: int = 3    # question pages generated per article
     headline_optimization: bool = False
     legal_review: bool = False
+    llm_calls_per_article_budget: int = 0  # 0 = unlimited; >0 skips optional calls when exceeded
 
 
 class AppConfig(BaseModel):

@@ -46,6 +46,7 @@ class RawArticle(Base):
     published_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     fetched_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     embedding_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    summary_cache_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     cluster_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("cluster.id"), nullable=True)
 
     source: Mapped["SourceRegistry"] = relationship(back_populates="articles")

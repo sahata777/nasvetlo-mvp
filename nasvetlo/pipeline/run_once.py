@@ -251,8 +251,15 @@ def _draft_cluster(
     if not items:
         return None
 
-    # 5a: Source summaries
-    summaries = summarize_cluster_sources(items)
+    # LLM budget tracker — counts optional LLM calls; 0 = unlimited
+    _budget = config.features.llm_calls_per_article_budget
+    _llm_calls = 0
+
+    def _budget_ok() -> bool:
+        return _budget == 0 or _llm_calls < _budget
+
+    # 5a: Source summaries (session enables per-article cache)
+    summaries = summarize_cluster_sources(items, session=session)
 
     # 5b: Merge facts
     facts = merge_facts(summaries)
@@ -264,9 +271,9 @@ def _draft_cluster(
     edit_result = self_edit(article_text)
     final_text = edit_result.revised_article
 
-    # 5d2: Headline Optimization (feature-flagged)
+    # 5d2: Headline Optimization (feature-flagged, budget-gated)
     _headline_variants_json = None
-    if config.features.headline_optimization:
+    if config.features.headline_optimization and _budget_ok():
         try:
             from nasvetlo.drafting.headline_optimizer import optimize_headline
             _lines = final_text.strip().split("\n")
@@ -279,6 +286,7 @@ def _draft_cluster(
                     [v.model_dump() for v in hl_result.variants],
                     ensure_ascii=False,
                 )
+            _llm_calls += 1
         except Exception as e:
             log.warning("Headline optimization failed for cluster %d: %s", cluster.id, e)
 
@@ -286,9 +294,9 @@ def _draft_cluster(
     safety_result = full_safety_gate(final_text, config)
     log.info("Safety result: risk=%s, flags=%s", safety_result.risk_level, safety_result.flags)
 
-    # 5e2: Legal review (feature-flagged, selective — only for flagged/named-entity articles)
+    # 5e2: Legal review (feature-flagged, selective, budget-gated)
     _legal_risk_json = None
-    if config.features.legal_review:
+    if config.features.legal_review and _budget_ok():
         try:
             from nasvetlo.drafting.legal_reviewer import run_legal_review
             _legal_result = run_legal_review(
@@ -306,6 +314,7 @@ def _draft_cluster(
                     log.warning(
                         "Legal review escalated risk to HIGH for cluster %d", cluster.id
                     )
+            _llm_calls += 1
         except Exception as e:
             log.warning("Legal review failed for cluster %d: %s", cluster.id, e)
 
@@ -325,8 +334,8 @@ def _draft_cluster(
     body_text = "\n".join(lines[1:]) if len(lines) > 1 else ""
     body_html = md_lib.markdown(body_text, extensions=["nl2br"])
 
-    # 5g: Context Expansion — append background / timeline / what-next / why-matters
-    if config.features.context_expansion:
+    # 5g: Context Expansion (budget-gated)
+    if config.features.context_expansion and _budget_ok():
         try:
             from nasvetlo.events.registry import get_event_for_cluster
             from nasvetlo.events.context import build_event_context
@@ -346,6 +355,7 @@ def _draft_cluster(
                         {"text": sections.background}, ensure_ascii=False
                     )
                 log.info("Context expansion complete for cluster %d", cluster.id)
+                _llm_calls += 1
         except Exception as e:
             log.warning("Context expansion failed for cluster %d: %s", cluster.id, e)
 
@@ -407,9 +417,9 @@ def _draft_cluster(
         except Exception as e:
             log.warning("Entity extraction failed for article %d: %s", gen_article.id, e)
 
-    # Search capture — generate question/answer pages
+    # Search capture — generate question/answer pages (budget-gated)
     _search_pages_stored = 0
-    if config.features.search_capture:
+    if config.features.search_capture and _budget_ok():
         try:
             from nasvetlo.search.question_generator import (
                 generate_search_questions, store_search_pages,
@@ -419,6 +429,7 @@ def _draft_cluster(
             _search_pages_stored = store_search_pages(
                 session, gen_article, _article_event, sq_result
             )
+            _llm_calls += 1
         except Exception as e:
             log.warning("Search capture failed for article %d: %s", gen_article.id, e)
 
