@@ -186,6 +186,7 @@ def reject_article(
 
 @router.post("/article/{article_id}/publish", response_class=HTMLResponse)
 def publish_article(article_id: int, request: Request, db: Session = Depends(get_db)):
+    config = get_config()
     article = db.query(GeneratedArticle).get(article_id)
     wp_url = None
     if article:
@@ -196,7 +197,7 @@ def publish_article(article_id: int, request: Request, db: Session = Depends(get
         result = publish_to_wordpress(article, get_settings())
         wp_url = result.wp_url
 
-        log = PublishingLog(
+        pub_log = PublishingLog(
             article_id=article_id,
             cluster_id=article.cluster_id,
             action="published",
@@ -206,8 +207,22 @@ def publish_article(article_id: int, request: Request, db: Session = Depends(get
             status="success" if result.success else "wp_failed",
             note=f"WP post #{result.wp_post_id}" if result.success else f"WP error: {result.error}",
         )
-        db.add(log)
+        db.add(pub_log)
         db.commit()
+
+        # Telegram channel distribution (feature-flagged)
+        if config.features.telegram_distribution:
+            try:
+                from nasvetlo.publishing.telegram_channel import post_article_to_channel
+                article_url = f"{config.web.site_url.rstrip('/')}/article/{article.slug}"
+                post_article_to_channel(
+                    title=article.title,
+                    meta_description=article.meta_description,
+                    article_url=article_url,
+                    config=config,
+                )
+            except Exception:
+                pass
 
     return templates.TemplateResponse("dashboard/partials/status_badge.html", {
         "request": request,

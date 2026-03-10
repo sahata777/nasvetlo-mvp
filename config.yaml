@@ -152,7 +152,8 @@ llm:
 
 telegram:
   bot_token_env: "TELEGRAM_BOT_TOKEN"
-  chat_id: ""
+  chat_id: ""          # editor draft notifications (leave empty to disable)
+  channel_id: ""       # public channel ID, e.g. "@nasvetlo_bg" (leave empty to disable)
 
 # Feature flags — toggle new capabilities without code changes.
 # Run migrations before enabling new flags:
@@ -174,3 +175,4 @@ features:
   legal_review: true
   traffic_feedback: true
   traffic_view_threshold: 50
+  telegram_distribution: false   # enable after setting telegram.channel_id

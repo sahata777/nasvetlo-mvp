@@ -64,7 +64,8 @@ class LLMConfig(BaseModel):
 
 class TelegramConfig(BaseModel):
     bot_token_env: str = "TELEGRAM_BOT_TOKEN"
-    chat_id: str = ""
+    chat_id: str = ""           # editor notifications (draft alerts)
+    channel_id: str = ""        # public channel (published article posts)
 
 
 class FeaturesConfig(BaseModel):
@@ -82,6 +83,7 @@ class FeaturesConfig(BaseModel):
     llm_calls_per_article_budget: int = 0  # 0 = unlimited; >0 skips optional calls when exceeded
     traffic_feedback: bool = False
     traffic_view_threshold: int = 50       # min views before boosting event/entity scores
+    telegram_distribution: bool = False    # post published articles to Telegram channel
 
 
 class AppConfig(BaseModel):
