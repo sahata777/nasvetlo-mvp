@@ -134,13 +134,15 @@ web:
   host: "0.0.0.0"
   port: 8000
   articles_per_page: 20
-  default_category_id: 1
+  default_category_id: 24
   category_map:
-    политика: 2
-    икономика: 3
-    общество: 4
-    свят: 5
-    технологии: 6
+    политика: 24
+    икономика: 25
+    общество: 24
+    свят: 29
+    технологии: 32
+    спорт: 31
+    култура: 30
 
 llm:
   provider: "anthropic"

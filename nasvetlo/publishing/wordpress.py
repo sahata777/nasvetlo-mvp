@@ -26,11 +26,16 @@ class PublishResult:
 log = get_logger("publishing.wordpress")
 
 
+def _wp_url(base_url: str, route: str) -> str:
+    """Build WordPress REST API URL using ?rest_route= fallback (works when /wp-json/ is not rewritten)."""
+    return f"{base_url}?rest_route={route}"
+
+
 def _get_or_create_tag(tag_name: str, base_url: str, auth: HTTPBasicAuth) -> int | None:
     """Return tag ID for a tag name, creating it if it doesn't exist."""
     try:
         resp = requests.get(
-            f"{base_url}/wp-json/wp/v2/tags",
+            _wp_url(base_url, "/wp/v2/tags"),
             params={"search": tag_name, "per_page": 1},
             auth=auth,
             timeout=15,
@@ -40,7 +45,7 @@ def _get_or_create_tag(tag_name: str, base_url: str, auth: HTTPBasicAuth) -> int
         if results:
             return results[0]["id"]
         resp = requests.post(
-            f"{base_url}/wp-json/wp/v2/tags",
+            _wp_url(base_url, "/wp/v2/tags"),
             json={"name": tag_name},
             auth=auth,
             timeout=15,
@@ -93,7 +98,7 @@ def publish_pending_post(
 
     try:
         resp = requests.post(
-            f"{wp_url}/wp-json/wp/v2/posts",
+            _wp_url(wp_url, "/wp/v2/posts"),
             json=payload,
             auth=auth,
             timeout=30,
@@ -158,7 +163,7 @@ def publish_to_wordpress(article: "GeneratedArticle", settings: "Settings") -> P
         if existing and existing.wp_post_id:
             # Update existing post to published
             resp = requests.post(
-                f"{wp_url}/wp-json/wp/v2/posts/{existing.wp_post_id}",
+                _wp_url(wp_url, f"/wp/v2/posts/{existing.wp_post_id}"),
                 json=payload,
                 auth=auth,
                 timeout=30,
@@ -166,7 +171,7 @@ def publish_to_wordpress(article: "GeneratedArticle", settings: "Settings") -> P
         else:
             # Create new post
             resp = requests.post(
-                f"{wp_url}/wp-json/wp/v2/posts",
+                _wp_url(wp_url, "/wp/v2/posts"),
                 json=payload,
                 auth=auth,
                 timeout=30,
