@@ -170,3 +170,4 @@ features:
   evergreen_refresh_days: 7
   search_capture: true
   search_questions_per_event: 3
+  headline_optimization: true

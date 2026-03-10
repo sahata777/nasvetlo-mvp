@@ -77,6 +77,7 @@ class FeaturesConfig(BaseModel):
     evergreen_refresh_days: int = 7        # re-generate if older than N days
     search_capture: bool = False
     search_questions_per_event: int = 3    # question pages generated per article
+    headline_optimization: bool = False
 
 
 class AppConfig(BaseModel):

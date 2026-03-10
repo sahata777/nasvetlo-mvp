@@ -264,6 +264,24 @@ def _draft_cluster(
     edit_result = self_edit(article_text)
     final_text = edit_result.revised_article
 
+    # 5d2: Headline Optimization (feature-flagged)
+    _headline_variants_json = None
+    if config.features.headline_optimization:
+        try:
+            from nasvetlo.drafting.headline_optimizer import optimize_headline
+            _lines = final_text.strip().split("\n")
+            _raw_title = _lines[0].strip().lstrip("#").strip() if _lines else ""
+            if _raw_title:
+                hl_result = optimize_headline(_raw_title, final_text)
+                if hl_result.best_headline:
+                    final_text = hl_result.best_headline + "\n" + "\n".join(_lines[1:])
+                _headline_variants_json = json.dumps(
+                    [v.model_dump() for v in hl_result.variants],
+                    ensure_ascii=False,
+                )
+        except Exception as e:
+            log.warning("Headline optimization failed for cluster %d: %s", cluster.id, e)
+
     # 5e: Safety gate
     safety_result = full_safety_gate(final_text, config)
     log.info("Safety result: risk=%s, flags=%s", safety_result.risk_level, safety_result.flags)
@@ -329,6 +347,8 @@ def _draft_cluster(
     gen_article.safety_flags_json = json.dumps(
         [str(f) for f in safety_result.flags], ensure_ascii=False
     )
+    if _headline_variants_json:
+        gen_article.headline_variants_json = _headline_variants_json
 
     session.add(gen_article)
     cluster.drafted = True
