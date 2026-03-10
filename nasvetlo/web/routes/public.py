@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, Response
 from sqlalchemy.orm import Session
 
+from nasvetlo.analytics.tracker import record_view
 from nasvetlo.config import get_config
 from nasvetlo.models import Entity, EntityEventLink, GeneratedArticle, SearchPage
 from nasvetlo.web.deps import get_db, templates
@@ -221,6 +222,18 @@ def search_capture_page(slug: str, request: Request, db: Session = Depends(get_d
         "article": article,
         "config": config,
     })
+
+
+@router.post("/track/{article_id}")
+def track_view(article_id: int, db: Session = Depends(get_db)):
+    """Increment view counter for an article. Called by JS beacon on page load."""
+    try:
+        record_view(db, article_id)
+    except Exception:
+        pass
+    # Return 1x1 transparent GIF
+    gif = b"GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x00\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+    return Response(content=gif, media_type="image/gif")
 
 
 @router.get("/feed.xml")

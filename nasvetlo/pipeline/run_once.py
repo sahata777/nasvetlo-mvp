@@ -215,6 +215,19 @@ def run_pipeline(
                 summary["errors"] += 1
                 summary["error_details"].append(f"evergreen_explainers: {e}")
 
+        # Step 7: Traffic Feedback Loop (feature-flagged)
+        if config.features.traffic_feedback:
+            log.info("=== STEP 7: Traffic Feedback ===")
+            try:
+                from nasvetlo.analytics.feedback import apply_traffic_feedback
+                fb = apply_traffic_feedback(session, config)
+                summary["traffic_boosted_events"] = fb["events_boosted"]
+                summary["traffic_boosted_entities"] = fb["entities_boosted"]
+            except Exception as e:
+                log.error("Traffic feedback failed: %s", e)
+                summary["errors"] += 1
+                summary["error_details"].append(f"traffic_feedback: {e}")
+
         run_log.status = "completed"
         run_log.articles_ingested = summary["articles_ingested"]
         run_log.clusters_formed = summary["clusters_formed"]

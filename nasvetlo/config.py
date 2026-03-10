@@ -80,6 +80,8 @@ class FeaturesConfig(BaseModel):
     headline_optimization: bool = False
     legal_review: bool = False
     llm_calls_per_article_budget: int = 0  # 0 = unlimited; >0 skips optional calls when exceeded
+    traffic_feedback: bool = False
+    traffic_view_threshold: int = 50       # min views before boosting event/entity scores
 
 
 class AppConfig(BaseModel):

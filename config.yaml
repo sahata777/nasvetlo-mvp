@@ -172,3 +172,5 @@ features:
   search_questions_per_event: 3
   headline_optimization: true
   legal_review: true
+  traffic_feedback: true
+  traffic_view_threshold: 50

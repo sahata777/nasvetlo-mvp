@@ -110,6 +110,8 @@ class GeneratedArticle(Base):
     headline_variants_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     legal_risk_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     source_urls_json: Mapped[str] = mapped_column(Text, default="[]")
+    view_count: Mapped[int] = mapped_column(Integer, default=0)
+    traffic_boosted: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     published: Mapped[bool] = mapped_column(Boolean, default=False)
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True)

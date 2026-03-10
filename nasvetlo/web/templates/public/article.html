@@ -48,3 +48,9 @@
     {% endif %}
 </article>
 {% endblock %}
+
+{% block scripts %}
+<script>
+  fetch("/track/{{ article.id }}", {method: "POST", keepalive: true}).catch(()=>{});
+</script>
+{% endblock %}
