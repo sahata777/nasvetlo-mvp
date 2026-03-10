@@ -286,6 +286,29 @@ def _draft_cluster(
     safety_result = full_safety_gate(final_text, config)
     log.info("Safety result: risk=%s, flags=%s", safety_result.risk_level, safety_result.flags)
 
+    # 5e2: Legal review (feature-flagged, selective — only for flagged/named-entity articles)
+    _legal_risk_json = None
+    if config.features.legal_review:
+        try:
+            from nasvetlo.drafting.legal_reviewer import run_legal_review
+            _legal_result = run_legal_review(
+                article_text=final_text,
+                safety_flags=[str(f) for f in safety_result.flags],
+            )
+            if _legal_result is not None:
+                _legal_risk_json = json.dumps(
+                    _legal_result.model_dump(), ensure_ascii=False
+                )
+                # Escalate risk if legal review found high-severity issues
+                if _legal_result.risk_level == "high" and safety_result.risk_level != "high":
+                    safety_result.risk_level = "high"
+                    safety_result.flags.append("legal_review: high risk")
+                    log.warning(
+                        "Legal review escalated risk to HIGH for cluster %d", cluster.id
+                    )
+        except Exception as e:
+            log.warning("Legal review failed for cluster %d: %s", cluster.id, e)
+
     # 5f: SEO
     seo = generate_seo(final_text, config)
 
@@ -349,6 +372,8 @@ def _draft_cluster(
     )
     if _headline_variants_json:
         gen_article.headline_variants_json = _headline_variants_json
+    if _legal_risk_json:
+        gen_article.legal_risk_json = _legal_risk_json
 
     session.add(gen_article)
     cluster.drafted = True

@@ -107,6 +107,7 @@ class GeneratedArticle(Base):
     safety_risk_level: Mapped[str] = mapped_column(String(20), default="low")
     safety_flags_json: Mapped[str] = mapped_column(Text, default="[]")
     headline_variants_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    legal_risk_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     source_urls_json: Mapped[str] = mapped_column(Text, default="[]")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     published: Mapped[bool] = mapped_column(Boolean, default=False)

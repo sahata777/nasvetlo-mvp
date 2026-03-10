@@ -78,6 +78,7 @@ class FeaturesConfig(BaseModel):
     search_capture: bool = False
     search_questions_per_event: int = 3    # question pages generated per article
     headline_optimization: bool = False
+    legal_review: bool = False
 
 
 class AppConfig(BaseModel):
