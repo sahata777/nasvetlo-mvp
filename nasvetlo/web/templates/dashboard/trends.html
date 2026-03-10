@@ -1,0 +1,104 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Тренд — На Светло{% endblock %}
+
+{% block content %}
+<h1>Тенденции</h1>
+<p class="info-box">
+    Последните <strong>{{ hours }} часа</strong> &mdash;
+    изчислено в {{ trends.computed_at.strftime('%d.%m.%Y %H:%M') }} UTC
+    &mdash;
+    <a href="?hours=24">24ч</a> |
+    <a href="?hours=48">48ч</a> |
+    <a href="?hours=168">7 дни</a>
+</p>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">{{ trends.events | length }}</div>
+        <div class="stat-label">Активни събития</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ trends.entities | length }}</div>
+        <div class="stat-label">Активни субекти</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ trends.topics | length }}</div>
+        <div class="stat-label">Теми</div>
+    </div>
+</div>
+
+<h2>Горещи теми</h2>
+{% if trends.topics %}
+<table class="data-table">
+    <thead>
+        <tr><th>Тема</th><th>Събития</th><th>Макс. важност</th></tr>
+    </thead>
+    <tbody>
+        {% for t in trends.topics %}
+        <tr>
+            <td>{{ t.topic }}</td>
+            <td>{{ t.event_count }}</td>
+            <td>{{ "%.3f" | format(t.max_importance) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="empty-state">Няма данни за избрания период.</p>
+{% endif %}
+
+<h2>Актуални събития</h2>
+{% if trends.events %}
+<table class="data-table">
+    <thead>
+        <tr><th>Тема / Категория</th><th>Важност</th><th>Актуализирано</th><th>Статия</th></tr>
+    </thead>
+    <tbody>
+        {% for ev in trends.events %}
+        <tr>
+            <td>{{ ev.topic }} <small style="color:#888">/ {{ ev.category }}</small></td>
+            <td>{{ "%.3f" | format(ev.importance_score) }}</td>
+            <td>{{ ev.last_updated.strftime('%d.%m %H:%M') }}</td>
+            <td>
+                {% if ev.article_slug %}
+                <a href="/dashboard/article/{{ ev.article_id }}">{{ ev.article_title | truncate(50) }}</a>
+                {% else %}
+                <span style="color:#aaa">—</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="empty-state">Няма актуализирани събития за избрания период.</p>
+{% endif %}
+
+<h2>Активни субекти</h2>
+{% if trends.entities %}
+<table class="data-table">
+    <thead>
+        <tr><th>Субект</th><th>Тип</th><th>Споменавания</th><th>Важност</th></tr>
+    </thead>
+    <tbody>
+        {% for e in trends.entities %}
+        <tr>
+            <td>
+                {% if e.slug %}
+                <a href="/entity/{{ e.slug }}">{{ e.name }}</a>
+                {% else %}
+                {{ e.name }}
+                {% endif %}
+            </td>
+            <td>{{ e.entity_type }}</td>
+            <td>{{ e.mention_count }}</td>
+            <td>{{ "%.3f" | format(e.importance_score) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="empty-state">Няма активни субекти за избрания период.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "public/base.html" %}
+
+{% block title %}Тенденции — {{ config.web.site_name }}{% endblock %}
+{% block meta_description %}Актуалните теми и субекти в новините за последните 48 часа.{% endblock %}
+
+{% block content %}
+<h1>Тенденции</h1>
+<p class="article-meta">Последните {{ trends.lookback_hours }} часа &middot; {{ trends.computed_at.strftime('%d.%m.%Y %H:%M') }} UTC</p>
+
+{% if trends.topics %}
+<section>
+    <h2>Горещи теми</h2>
+    <div class="article-tags" style="margin-bottom:1.5rem">
+        {% for t in trends.topics %}
+        <span class="tag">{{ t.topic }} <small>({{ t.event_count }})</small></span>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if trends.events %}
+<section>
+    <h2>Актуални събития</h2>
+    <div class="article-list">
+        {% for ev in trends.events %}
+        {% if ev.article_slug %}
+        <article class="article-card">
+            <span class="category-tag">{{ ev.category }}</span>
+            <h3><a href="/article/{{ ev.article_slug }}">{{ ev.article_title }}</a></h3>
+            <p class="article-meta">{{ ev.last_updated.strftime('%d.%m.%Y %H:%M') }}</p>
+        </article>
+        {% endif %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if trends.entities %}
+<section>
+    <h2>Активни субекти</h2>
+    <div class="article-tags" style="margin-bottom:1.5rem">
+        {% for e in trends.entities %}
+        {% if e.slug %}
+        <a href="/entity/{{ e.slug }}" class="tag">{{ e.name }} <small>({{ e.mention_count }})</small></a>
+        {% else %}
+        <span class="tag">{{ e.name }} <small>({{ e.mention_count }})</small></span>
+        {% endif %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if not trends.events and not trends.entities and not trends.topics %}
+<p class="empty-state">Все още няма данни за тенденции.</p>
+{% endif %}
+{% endblock %}

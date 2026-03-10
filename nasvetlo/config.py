@@ -84,6 +84,7 @@ class FeaturesConfig(BaseModel):
     traffic_feedback: bool = False
     traffic_view_threshold: int = 50       # min views before boosting event/entity scores
     telegram_distribution: bool = False    # post published articles to Telegram channel
+    trend_detection: bool = False          # enable /trending page and dashboard trends tab
 
 
 class AppConfig(BaseModel):

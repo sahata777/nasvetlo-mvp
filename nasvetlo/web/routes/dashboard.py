@@ -297,3 +297,14 @@ def sources_list(request: Request, db: Session = Depends(get_db)):
         "request": request,
         "sources": sources,
     })
+
+
+@router.get("/trends", response_class=HTMLResponse)
+def trends_page(request: Request, hours: int = 48, db: Session = Depends(get_db)):
+    from nasvetlo.analytics.trends import compute_trends
+    trends = compute_trends(db, lookback_hours=hours)
+    return templates.TemplateResponse("dashboard/trends.html", {
+        "request": request,
+        "trends": trends,
+        "hours": hours,
+    })

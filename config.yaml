@@ -176,3 +176,4 @@ features:
   traffic_feedback: true
   traffic_view_threshold: 50
   telegram_distribution: false   # enable after setting telegram.channel_id
+  trend_detection: true

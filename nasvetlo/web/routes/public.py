@@ -236,6 +236,24 @@ def track_view(article_id: int, db: Session = Depends(get_db)):
     return Response(content=gif, media_type="image/gif")
 
 
+@router.get("/trending", response_class=HTMLResponse)
+def trending_page(request: Request, db: Session = Depends(get_db)):
+    config = get_config()
+    if not config.features.trend_detection:
+        return templates.TemplateResponse(
+            "public/404.html",
+            {"request": request, "config": config},
+            status_code=404,
+        )
+    from nasvetlo.analytics.trends import compute_trends
+    trends = compute_trends(db, lookback_hours=48)
+    return templates.TemplateResponse("public/trending.html", {
+        "request": request,
+        "trends": trends,
+        "config": config,
+    })
+
+
 @router.get("/feed.xml")
 def rss_feed(request: Request, db: Session = Depends(get_db)):
     config = get_config()
