@@ -79,7 +79,7 @@ sources:
 
 thresholds:
   similarity_threshold: 0.80
-  min_sources: 3
+  min_sources: 2
   time_window_hours: 24
   importance_threshold: 0.60
   coherence_confidence_min: 0.60
