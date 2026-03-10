@@ -1,0 +1,31 @@
+{% extends "public/base.html" %}
+
+{% block title %}{{ page.question }} — На Светло{% endblock %}
+{% block meta_description %}{{ page.meta_description or page.question }}{% endblock %}
+
+{% block head %}
+<meta property="og:title" content="{{ page.question }}">
+<meta property="og:description" content="{{ page.meta_description or page.question }}">
+<meta property="og:type" content="article">
+<link rel="canonical" href="{{ config.web.site_url.rstrip('/') }}/q/{{ page.slug }}">
+{% endblock %}
+
+{% block content %}
+<article class="search-capture-page">
+    <header>
+        <h1>{{ page.question }}</h1>
+    </header>
+
+    <div class="search-capture-body">
+        {{ page.body_html | safe }}
+    </div>
+
+    <aside class="search-capture-source">
+        <h2>Пълна статия</h2>
+        <p>
+            <a href="/article/{{ article.slug }}">{{ article.title }}</a>
+            <span class="article-date">{{ article.created_at.strftime('%d.%m.%Y') }}</span>
+        </p>
+    </aside>
+</article>
+{% endblock %}

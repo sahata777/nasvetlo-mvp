@@ -77,8 +77,12 @@ def run_pipeline(
         "clusters_formed": 0,
         "coherence_validated": 0,
         "clusters_scored": 0,
+        "events_created": 0,
+        "events_updated": 0,
         "drafts_created": 0,
         "drafts_published": 0,
+        "search_pages_created": 0,
+        "explainers_generated": 0,
         "errors": 0,
         "error_details": [],
         "dry_run": dry_run,
@@ -138,6 +142,23 @@ def run_pipeline(
             summary["errors"] += 1
             summary["error_details"].append(f"scoring: {e}")
 
+        # Step 4b: Event Registry Sync (feature-flagged)
+        if config.features.event_registry:
+            log.info("=== STEP 4b: Event Registry Sync ===")
+            try:
+                from nasvetlo.events.registry import sync_event_registry
+                er_result = sync_event_registry(session, config)
+                summary["events_created"] = er_result["created"]
+                summary["events_updated"] = er_result["updated"]
+                log.info(
+                    "Event registry: %d created, %d updated",
+                    er_result["created"], er_result["updated"],
+                )
+            except Exception as e:
+                log.error("Event registry sync failed: %s", e)
+                summary["errors"] += 1
+                summary["error_details"].append(f"event_registry: {e}")
+
         # Step 5: Drafting
         log.info("=== STEP 5: Draft Generation ===")
         daily_cap = config.schedule.daily_cap
@@ -160,6 +181,7 @@ def run_pipeline(
                         summary["drafts_created"] += 1
                         if not dry_run:
                             summary["drafts_published"] += 1
+                        summary["search_pages_created"] += draft_result.get("search_pages", 0)
                         consecutive_failures = 0
                     else:
                         consecutive_failures += 1
@@ -179,6 +201,19 @@ def run_pipeline(
             if _count_recent_high_risk(session) >= 3:
                 log.error("3+ high-risk articles in 24h. Auto-pausing pipeline.")
                 _set_paused(session, True)
+
+        # Step 6: Evergreen Explainer Generation (feature-flagged)
+        if config.features.evergreen_explainers:
+            log.info("=== STEP 6: Evergreen Explainer Generation ===")
+            try:
+                from nasvetlo.entities.explainer import run_evergreen_explainers
+                explainers = run_evergreen_explainers(session, config, dry_run)
+                summary["explainers_generated"] = explainers
+                log.info("Evergreen explainers: %d generated", explainers)
+            except Exception as e:
+                log.error("Evergreen explainer generation failed: %s", e)
+                summary["errors"] += 1
+                summary["error_details"].append(f"evergreen_explainers: {e}")
 
         run_log.status = "completed"
         run_log.articles_ingested = summary["articles_ingested"]
@@ -249,6 +284,30 @@ def _draft_cluster(
     body_text = "\n".join(lines[1:]) if len(lines) > 1 else ""
     body_html = md_lib.markdown(body_text, extensions=["nl2br"])
 
+    # 5g: Context Expansion — append background / timeline / what-next / why-matters
+    if config.features.context_expansion:
+        try:
+            from nasvetlo.events.registry import get_event_for_cluster
+            from nasvetlo.events.context import build_event_context
+            from nasvetlo.drafting.context_expander import expand_context, build_context_html
+            event = get_event_for_cluster(session, cluster.id)
+            if event:
+                event_context = build_event_context(session, event)
+                sections = expand_context(final_text, event_context)
+                context_html = build_context_html(sections)
+                if context_html:
+                    body_html += "\n" + context_html
+                # Persist timeline and background back to the event for future context
+                if sections.timeline:
+                    event.timeline_json = json.dumps(sections.timeline, ensure_ascii=False)
+                if sections.background:
+                    event.background_json = json.dumps(
+                        {"text": sections.background}, ensure_ascii=False
+                    )
+                log.info("Context expansion complete for cluster %d", cluster.id)
+        except Exception as e:
+            log.warning("Context expansion failed for cluster %d: %s", cluster.id, e)
+
     # Word count
     word_count = len(final_text.split())
 
@@ -275,11 +334,55 @@ def _draft_cluster(
     cluster.drafted = True
     session.flush()
 
+    # Post-storage enrichment — event linking and entity extraction share a
+    # single get_event_for_cluster call to avoid redundant DB queries.
+    _article_event = None
+    if config.features.event_registry or config.features.entity_extraction:
+        try:
+            from nasvetlo.events.registry import get_event_for_cluster
+            _article_event = get_event_for_cluster(session, cluster.id)
+        except Exception as e:
+            log.warning("Could not fetch event for cluster %d: %s", cluster.id, e)
+
+    # Link article to event registry
+    if config.features.event_registry and _article_event:
+        try:
+            from nasvetlo.events.registry import mark_event_published
+            mark_event_published(session, _article_event.id, gen_article.id)
+        except Exception as e:
+            log.warning("Failed to link article %d to event registry: %s", gen_article.id, e)
+
+    # Entity extraction — build knowledge graph
+    if config.features.entity_extraction:
+        try:
+            from nasvetlo.entities.extractor import extract_entities
+            from nasvetlo.entities.graph import process_article_entities
+            extraction = extract_entities(final_text)
+            process_article_entities(session, gen_article, _article_event, extraction)
+        except Exception as e:
+            log.warning("Entity extraction failed for article %d: %s", gen_article.id, e)
+
+    # Search capture — generate question/answer pages
+    _search_pages_stored = 0
+    if config.features.search_capture:
+        try:
+            from nasvetlo.search.question_generator import (
+                generate_search_questions, store_search_pages,
+            )
+            n = config.features.search_questions_per_event
+            sq_result = generate_search_questions(title, final_text, n=n)
+            _search_pages_stored = store_search_pages(
+                session, gen_article, _article_event, sq_result
+            )
+        except Exception as e:
+            log.warning("Search capture failed for article %d: %s", gen_article.id, e)
+
     result_info: dict = {
         "article_id": gen_article.id,
         "title": title,
         "word_count": word_count,
         "safety_risk": safety_result.risk_level,
+        "search_pages": _search_pages_stored,
     }
 
     # Step 6: Mark as pending for editorial review

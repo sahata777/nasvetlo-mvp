@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     # Telegram
     telegram_bot_token: str = Field(default="", alias="TELEGRAM_BOT_TOKEN")
 
+    # WordPress
+    wp_url: str = Field(default="", alias="WP_URL")
+    wp_username: str = Field(default="", alias="WP_USERNAME")
+    wp_application_password: str = Field(default="", alias="WP_APPLICATION_PASSWORD")
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 
 

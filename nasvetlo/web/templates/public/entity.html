@@ -1,0 +1,50 @@
+{% extends "public/base.html" %}
+
+{% block title %}{{ entity.name }} — На Светло{% endblock %}
+{% block meta_description %}Всичко важно за {{ entity.name }} — дефиниция, история, хронология и последни новини.{% endblock %}
+
+{% block head %}
+<meta property="og:title" content="{{ entity.name }} — На Светло">
+<meta property="og:description" content="Всичко важно за {{ entity.name }}.">
+<meta property="og:type" content="article">
+{% endblock %}
+
+{% block content %}
+<article class="entity-page">
+    <header>
+        <span class="category-tag entity-type-tag">
+            {% if entity.entity_type == "person" %}Личност
+            {% elif entity.entity_type == "organization" %}Организация
+            {% elif entity.entity_type == "location" %}Място
+            {% elif entity.entity_type == "company" %}Компания
+            {% elif entity.entity_type == "law" %}Закон / Акт
+            {% else %}{{ entity.entity_type }}{% endif %}
+        </span>
+        <h1>{{ entity.name }}</h1>
+        <p class="article-meta">
+            Споменат {{ entity.mention_count }} пъти в новини
+            {% if entity.explainer_updated_at %}
+            | Актуализирано: {{ entity.explainer_updated_at.strftime('%d.%m.%Y') }}
+            {% endif %}
+        </p>
+    </header>
+
+    <div class="entity-explainer-body">
+        {{ entity.explainer_html | safe }}
+    </div>
+
+    {% if recent_articles %}
+    <section class="entity-news">
+        <h2>Последни новини за {{ entity.name }}</h2>
+        <ul class="article-list-compact">
+            {% for article in recent_articles %}
+            <li>
+                <a href="/article/{{ article.slug }}">{{ article.title }}</a>
+                <span class="article-date">{{ article.created_at.strftime('%d.%m.%Y') }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+</article>
+{% endblock %}

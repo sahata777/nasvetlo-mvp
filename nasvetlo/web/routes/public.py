@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse, Response
 from sqlalchemy.orm import Session
 
 from nasvetlo.config import get_config
-from nasvetlo.models import GeneratedArticle
+from nasvetlo.models import Entity, EntityEventLink, GeneratedArticle, SearchPage
 from nasvetlo.web.deps import get_db, templates
 
 router = APIRouter()
@@ -158,6 +158,71 @@ def contact_page(request: Request):
     })
 
 
+@router.get("/entity/{slug}", response_class=HTMLResponse)
+def entity_page(slug: str, request: Request, db: Session = Depends(get_db)):
+    config = get_config()
+    entity = db.query(Entity).filter_by(slug=slug).first()
+    if not entity or not entity.explainer_html:
+        return templates.TemplateResponse(
+            "public/404.html",
+            {"request": request, "config": config},
+            status_code=404,
+        )
+
+    # Recent published articles mentioning this entity
+    links = db.query(EntityEventLink).filter_by(entity_id=entity.id).all()
+    article_ids = [lnk.article_id for lnk in links if lnk.article_id]
+    recent_articles = (
+        db.query(GeneratedArticle)
+        .filter(
+            GeneratedArticle.id.in_(article_ids),
+            GeneratedArticle.status == "published",
+        )
+        .order_by(GeneratedArticle.created_at.desc())
+        .limit(10)
+        .all()
+    ) if article_ids else []
+
+    return templates.TemplateResponse("public/entity.html", {
+        "request": request,
+        "entity": entity,
+        "recent_articles": recent_articles,
+        "config": config,
+    })
+
+
+@router.get("/q/{slug}", response_class=HTMLResponse)
+def search_capture_page(slug: str, request: Request, db: Session = Depends(get_db)):
+    config = get_config()
+    page = db.query(SearchPage).filter_by(slug=slug).first()
+    if not page:
+        return templates.TemplateResponse(
+            "public/404.html",
+            {"request": request, "config": config},
+            status_code=404,
+        )
+
+    # Only serve if parent article is published
+    article = (
+        db.query(GeneratedArticle)
+        .filter_by(id=page.article_id, status="published")
+        .first()
+    )
+    if not article:
+        return templates.TemplateResponse(
+            "public/404.html",
+            {"request": request, "config": config},
+            status_code=404,
+        )
+
+    return templates.TemplateResponse("public/search_capture.html", {
+        "request": request,
+        "page": page,
+        "article": article,
+        "config": config,
+    })
+
+
 @router.get("/feed.xml")
 def rss_feed(request: Request, db: Session = Depends(get_db)):
     config = get_config()
@@ -190,12 +255,26 @@ def sitemap(request: Request, db: Session = Depends(get_db)):
         .all()
     )
 
+    entity_pages = db.query(Entity).filter(Entity.explainer_html.isnot(None)).all()
+
+    # Search capture pages — only for published parent articles
+    published_ids = {a.id for a in articles}
+    search_pages = (
+        db.query(SearchPage)
+        .filter(SearchPage.article_id.in_(published_ids))
+        .all()
+    ) if published_ids else []
+
     xml_lines = ['<?xml version="1.0" encoding="UTF-8"?>']
     xml_lines.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
     base = config.web.site_url.rstrip("/")
     xml_lines.append(f"  <url><loc>{base}/</loc></url>")
     for a in articles:
         xml_lines.append(f"  <url><loc>{base}/article/{a.slug}</loc></url>")
+    for e in entity_pages:
+        xml_lines.append(f"  <url><loc>{base}/entity/{e.slug}</loc></url>")
+    for sp in search_pages:
+        xml_lines.append(f"  <url><loc>{base}/q/{sp.slug}</loc></url>")
     xml_lines.append("</urlset>")
 
     return Response(content="\n".join(xml_lines), media_type="application/xml")

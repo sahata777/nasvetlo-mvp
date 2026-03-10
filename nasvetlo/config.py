@@ -67,6 +67,18 @@ class TelegramConfig(BaseModel):
     chat_id: str = ""
 
 
+class FeaturesConfig(BaseModel):
+    """Feature flags — each can be toggled in config.yaml without code changes."""
+    event_registry: bool = False
+    context_expansion: bool = False
+    entity_extraction: bool = False
+    evergreen_explainers: bool = False
+    evergreen_mention_threshold: int = 3   # min mentions before generating explainer
+    evergreen_refresh_days: int = 7        # re-generate if older than N days
+    search_capture: bool = False
+    search_questions_per_event: int = 3    # question pages generated per article
+
+
 class AppConfig(BaseModel):
     sources: list[SourceConfig] = Field(default_factory=list)
     thresholds: ThresholdsConfig = Field(default_factory=ThresholdsConfig)
@@ -76,6 +88,7 @@ class AppConfig(BaseModel):
     web: WebConfig = Field(default_factory=WebConfig)
     llm: LLMConfig = Field(default_factory=LLMConfig)
     telegram: TelegramConfig = Field(default_factory=TelegramConfig)
+    features: FeaturesConfig = Field(default_factory=FeaturesConfig)
 
 
 _config: AppConfig | None = None

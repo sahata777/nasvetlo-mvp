@@ -24,6 +24,9 @@
     {% endif %}
     {% if article.status == "published" %}
     <a href="/article/{{ article.slug }}" class="btn btn-primary" target="_blank">Виж на сайта &rarr;</a>
+    {% if wp_url %}
+    <a href="{{ wp_url }}" class="btn btn-secondary" target="_blank">Виж в WordPress &rarr;</a>
+    {% endif %}
     {% endif %}
     {% if article.status == "rejected" %}
     <span class="badge badge-status-rejected">Отхвърлена</span>

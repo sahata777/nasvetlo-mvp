@@ -153,3 +153,20 @@ llm:
 telegram:
   bot_token_env: "TELEGRAM_BOT_TOKEN"
   chat_id: ""
+
+# Feature flags — toggle new capabilities without code changes.
+# Run migrations before enabling new flags:
+#   python -m nasvetlo.scripts.migrate_add_event_registry
+#   python -m nasvetlo.scripts.backfill_events
+#   python -m nasvetlo.scripts.migrate_add_entities
+#   python -m nasvetlo.scripts.migrate_add_entity_explainer
+#   python -m nasvetlo.scripts.migrate_add_search_pages
+features:
+  event_registry: true
+  context_expansion: true
+  entity_extraction: true
+  evergreen_explainers: true
+  evergreen_mention_threshold: 3
+  evergreen_refresh_days: 7
+  search_capture: true
+  search_questions_per_event: 3

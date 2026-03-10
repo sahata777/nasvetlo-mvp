@@ -112,6 +112,64 @@ def publish_pending_post(
         return None
 
 
+def publish_entity_page(
+    title: str,
+    body_html: str,
+    slug: str,
+    existing_wp_page_id: int | None = None,
+) -> dict | None:
+    """Create or update a WordPress page for an entity explainer.
+
+    Pages are created with ``status: "draft"`` so an editor must publish them.
+    If ``existing_wp_page_id`` is provided, the existing page is updated.
+
+    Returns the WP page dict on success, None on failure.
+    """
+    settings = get_settings()
+    wp_url = settings.wp_url.rstrip("/") if settings.wp_url else ""
+    username = settings.wp_username
+    password = settings.wp_application_password
+
+    if not wp_url or not username or not password:
+        log.warning("WordPress credentials not configured — skipping entity page publish")
+        return None
+
+    auth = HTTPBasicAuth(username, password)
+    payload = {
+        "title": title,
+        "content": body_html,
+        "status": "draft",
+        "slug": slug,
+    }
+
+    try:
+        if existing_wp_page_id:
+            resp = requests.post(
+                _wp_url(wp_url, f"/wp/v2/pages/{existing_wp_page_id}"),
+                json=payload,
+                auth=auth,
+                timeout=30,
+            )
+        else:
+            resp = requests.post(
+                _wp_url(wp_url, "/wp/v2/pages"),
+                json=payload,
+                auth=auth,
+                timeout=30,
+            )
+        resp.raise_for_status()
+        page = resp.json()
+        log.info(
+            "Entity page %s: id=%d slug=%s",
+            "updated" if existing_wp_page_id else "created",
+            page["id"], slug,
+        )
+        return page
+    except Exception as e:
+        log.error("Failed to create/update entity page '%s': %s", title, e)
+        return None
+
+
 def publish_to_wordpress(article: "GeneratedArticle", settings: "Settings") -> PublishResult:
     """
     Publish a GeneratedArticle to WordPress as a live 'publish' post.
